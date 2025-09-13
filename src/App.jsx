@@ -506,7 +506,7 @@ const handleDeleteRepair = async (id) => {
         </div>
       )}
 
-      {/* View Repair Details Modal */}
+      View Repair Details Modal
 {viewingRepair && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto">
@@ -583,6 +583,126 @@ const handleDeleteRepair = async (id) => {
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
           >
             Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+{/* View Repair Details Modal */}
+{viewingRepair && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto">
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Repair Details</h2>
+          <button
+            onClick={() => setViewingRepair(null)}
+            className="text-gray-400 hover:text-gray-600 transition-colors duration-150"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-4 text-sm">
+          <div>
+            <span className="font-medium text-gray-700">Brand:</span>
+            <p className="text-gray-900">{viewingRepair.mobileName}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Details:</span>
+            <p className="text-gray-900">{viewingRepair.extraInfo || 'N/A'}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Problem/Condition:</span>
+            <p className="text-gray-900">{viewingRepair.issueDescription || 'N/A'}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Customer Name:</span>
+            <p className="text-gray-900">{viewingRepair.ownerName}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Contact Number:</span>
+            <p className="text-gray-900">{viewingRepair.contactNumber}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Password:</span>
+            <p className="text-gray-900">{viewingRepair.password}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Amount:</span>
+            <p className="text-indigo-600 font-medium">₹{viewingRepair.amount.toFixed(2)}</p>
+          </div>
+
+          {/* Status Update */}
+          <div>
+            <span className="font-medium text-gray-700">Status:</span>
+            <div className="mt-1">
+              <select
+                value={viewingRepair.status}
+                onChange={(e) => {
+                  const newStatus = e.target.value;
+                  // Update Firestore
+                  handleUpdateStatus(viewingRepair.id, newStatus);
+                  // Update local view
+                  setViewingRepair({ ...viewingRepair, status: newStatus });
+                }}
+                className="text-xs px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+              >
+                {getStatusOptions().map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Delivery Time:</span>
+            <p className="text-gray-900">{viewingRepair.deliveryTime || 'Not set'}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Added On:</span>
+            <p className="text-gray-900">{viewingRepair.createdAt}</p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              handleEditRepair(viewingRepair);
+              setViewingRepair(null);
+            }}
+            className="flex-1 px-4 py-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors duration-150 flex items-center justify-center"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+          </button>
+
+          <button
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete this repair?')) {
+                handleDeleteRepair(viewingRepair.id);
+                setViewingRepair(null);
+              }
+            }}
+            className="flex-1 px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors duration-150 flex items-center justify-center"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete
           </button>
         </div>
       </div>
