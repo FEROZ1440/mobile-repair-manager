@@ -10,7 +10,8 @@ const App = () => {
   const [editingRepair, setEditingRepair] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingId, setDeletingId] = useState(null); // null = no deletion in progress
+  const [viewingRepair, setViewingRepair] = useState(null);
 /*
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -132,15 +133,15 @@ useEffect(() => {
 
 const handleDeleteRepair = async (id) => {
   if (window.confirm('Are you sure you want to delete this repair entry?')) {
-    setIsDeleting(true);
+    setDeletingId(id); // Set the ID being deleted
     try {
       await deleteDoc(doc(db, 'repairs', id));
-      setRepairs(repairs.filter(r => r.id !== id));
+      setRepairs(prev => prev.filter(r => r.id !== id));
     } catch (error) {
       console.error("Error deleting repair:", error);
-      alert("Failed to delete repair. Please try again.");
+      alert("Failed to delete. Please try again.");
     } finally {
-      setIsDeleting(false);
+      setDeletingId(null); // Reset after completion
     }
   }
 };
@@ -259,7 +260,9 @@ const handleDeleteRepair = async (id) => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredRepairs.length > 0 ? (
                   filteredRepairs.map((repair) => (
-                    <tr key={repair.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    // <tr key={repair.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <tr key={repair.id} className={`${   deletingId === repair.id ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-50' } transition-all duration-150 cursor-pointer`}  onClick={() => setViewingRepair(repair)}>
+                    {/* <tr key={repair.id}  className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer" onClick={() => setViewingRepair(repair)} > */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{repair.mobileName}</div>
                       </td>
@@ -292,7 +295,10 @@ const handleDeleteRepair = async (id) => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleEditRepair(repair)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditRepair(repair);
+                            }}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors duration-150"
                           >
                             Edit
@@ -305,11 +311,14 @@ const handleDeleteRepair = async (id) => {
                           </button> */}
 
                           <button
-                            onClick={() => handleDeleteRepair(repair.id)}
-                            disabled={isDeleting}
+                            onClick={(e) =>{ 
+                              e.stopPropagation();
+                              handleDeleteRepair(repair.id);
+                            }}
+                            disabled={deletingId== repair.id}
                             className="text-red-600 hover:text-red-900 transition-colors duration-150"
                           >
-                            {isDeleting ? "Deleting..." : "Delete"}
+                            {deletingId === repair.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                         <div className="mt-2">
@@ -496,6 +505,90 @@ const handleDeleteRepair = async (id) => {
           </div>
         </div>
       )}
+
+      {/* View Repair Details Modal */}
+{viewingRepair && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Repair Details</h2>
+          <button
+            onClick={() => setViewingRepair(null)}
+            className="text-gray-400 hover:text-gray-600 transition-colors duration-150"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-4 text-sm">
+          <div>
+            <span className="font-medium text-gray-700">Brand:</span>
+            <p className="text-gray-900">{viewingRepair.mobileName}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Details:</span>
+            <p className="text-gray-900">{viewingRepair.extraInfo || 'N/A'}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Problem/Condition:</span>
+            <p className="text-gray-900">{viewingRepair.issueDescription || 'N/A'}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Customer Name:</span>
+            <p className="text-gray-900">{viewingRepair.ownerName}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Contact Number:</span>
+            <p className="text-gray-900">{viewingRepair.contactNumber}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Password:</span>
+            <p className="text-gray-900">{viewingRepair.password}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Amount:</span>
+            <p className="text-indigo-600 font-medium">₹{viewingRepair.amount.toFixed(2)}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Status:</span>
+            <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(viewingRepair.status)}`}>
+              {viewingRepair.status}
+            </span>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Delivery Time:</span>
+            <p className="text-gray-900">{viewingRepair.deliveryTime || 'Not set'}</p>
+          </div>
+
+          <div>
+            <span className="font-medium text-gray-700">Added On:</span>
+            <p className="text-gray-900">{viewingRepair.createdAt}</p>
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={() => setViewingRepair(null)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
