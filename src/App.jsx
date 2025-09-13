@@ -81,7 +81,7 @@ useEffect(() => {
     const formData = new FormData(e.target);
     
     const newRepair = {
-      id: Date.now().toString(),
+      id: editingRepair?editingRepair.id:Date.now().toString(),
       mobileName: formData.get('mobileName'),
       ownerName: formData.get('ownerName'),
       contactNumber: formData.get('contactNumber'),
@@ -97,6 +97,9 @@ useEffect(() => {
     if (editingRepair) {
       setRepairs(repairs.map(r => r.id === editingRepair.id ? newRepair : r));
       setEditingRepair(null);
+      // Also update viewingRepair if we're viewing this repair
+      setViewingRepair(newRepair); // Keep modal in sync    
+      
     } else {
       setRepairs([...repairs, newRepair]);
     }
@@ -253,7 +256,7 @@ const handleDeleteRepair = async (id) => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th> */}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
                 </tr>
               </thead>
@@ -292,7 +295,7 @@ const handleDeleteRepair = async (id) => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">{repair.createdAt}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    {/*  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
                             onClick={(e) => {
@@ -302,14 +305,14 @@ const handleDeleteRepair = async (id) => {
                             className="text-indigo-600 hover:text-indigo-900 transition-colors duration-150"
                           >
                             Edit
-                          </button>
+                          </button> */}
                           {/* <button
                             onClick={() => handleDeleteRepair(repair.id)}
                             className="text-red-600 hover:text-red-900 transition-colors duration-150"
                           >
                             Delete
                           </button> */}
-
+                        {/*
                           <button
                             onClick={(e) =>{ 
                               e.stopPropagation();
@@ -321,18 +324,19 @@ const handleDeleteRepair = async (id) => {
                             {deletingId === repair.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
-                        <div className="mt-2">
-                          <select
+                      {/*  <div className="mt-2">
+                          {/* <select
                             value={repair.status}
-                            onChange={(e) => handleUpdateStatus(repair.id, e.target.value)}
+                            onChange={(e) =>{ e.stopPropagation();
+                              handleUpdateStatus(repair.id, e.target.value)}}
                             className="text-xs px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           >
                             {getStatusOptions().map(status => (
                               <option key={status} value={status}>{status}</option>
                             ))}
-                          </select>
-                        </div>
-                      </td>
+                          </select> 
+                        </div> 
+                      </td> */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{repair.password}</div>
                       </td>
@@ -506,7 +510,7 @@ const handleDeleteRepair = async (id) => {
         </div>
       )}
 
-      View Repair Details Modal
+      {/* View Repair Details Modal 
 {viewingRepair && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto">
@@ -588,7 +592,7 @@ const handleDeleteRepair = async (id) => {
       </div>
     </div>
   </div>
-)}
+)} */}
 {/* View Repair Details Modal */}
 {viewingRepair && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -703,6 +707,14 @@ const handleDeleteRepair = async (id) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             Delete
+          </button>
+        </div>
+        <div className="flex flex-col items-center mt-6 w-full px-6">
+          <button
+            onClick={() => setViewingRepair(null)}
+            className="w-4/5 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-150 font-medium text-center"
+          >
+            Close
           </button>
         </div>
       </div>
