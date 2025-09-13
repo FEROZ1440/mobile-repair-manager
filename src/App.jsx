@@ -315,7 +315,7 @@ const handleDeleteRepair = async (id) => {
                               e.stopPropagation();
                               handleDeleteRepair(repair.id);
                             }}
-                            disabled={deletingId== repair.id}
+                            disabled={deletingId=== repair.id}
                             className="text-red-600 hover:text-red-900 transition-colors duration-150"
                           >
                             {deletingId === repair.id ? "Deleting..." : "Delete"}
