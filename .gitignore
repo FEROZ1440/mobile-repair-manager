@@ -23,6 +23,6 @@ yarn-error.log*
 *.swp
 *.swo
 
-# Firebase
-firebase.json
-.firebaserc
+# # Firebase
+# firebase.json
+# .firebaserc
