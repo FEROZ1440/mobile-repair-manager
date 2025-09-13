@@ -3,13 +3,14 @@ import './index.css';
 import { db } from './firebase';
 // import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
-import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, setDoc, doc,deleteDoc } from 'firebase/firestore';
 const App = () => {
   const [repairs, setRepairs] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingRepair, setEditingRepair] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [isDeleting, setIsDeleting] = useState(false);
 /*
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -108,11 +109,41 @@ useEffect(() => {
     setShowAddForm(true);
   };
 
-  const handleDeleteRepair = (id) => {
-    if (window.confirm('Are you sure you want to delete this repair entry?')) {
+  /* const handleDeleteRepair = (id) => {
+  //   if (window.confirm('Are you sure you want to delete this repair entry?')) {
+  //     setRepairs(repairs.filter(r => r.id !== id));
+  //   }
+  // };
+
+  const handleDeleteRepair = async (id) => {
+  if (window.confirm('Are you sure you want to delete this repair entry?')) {
+    try {
+      // 1. Delete from Firestore
+      await deleteDoc(doc(db, 'repairs', id));
+
+      // 2. Remove from local state
       setRepairs(repairs.filter(r => r.id !== id));
+    } catch (error) {
+      console.error("Error deleting repair:", error);
+      alert("Failed to delete repair. Please try again.");
     }
-  };
+  }
+};*/
+
+const handleDeleteRepair = async (id) => {
+  if (window.confirm('Are you sure you want to delete this repair entry?')) {
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'repairs', id));
+      setRepairs(repairs.filter(r => r.id !== id));
+    } catch (error) {
+      console.error("Error deleting repair:", error);
+      alert("Failed to delete repair. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+};
 
   const handleUpdateStatus = (id, newStatus) => {
     setRepairs(repairs.map(r => 
@@ -266,11 +297,19 @@ useEffect(() => {
                           >
                             Edit
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleDeleteRepair(repair.id)}
                             className="text-red-600 hover:text-red-900 transition-colors duration-150"
                           >
                             Delete
+                          </button> */}
+
+                          <button
+                            onClick={() => handleDeleteRepair(repair.id)}
+                            disabled={isDeleting}
+                            className="text-red-600 hover:text-red-900 transition-colors duration-150"
+                          >
+                            {isDeleting ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                         <div className="mt-2">
