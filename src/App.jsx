@@ -4,6 +4,13 @@ import { db } from './firebase';
 // import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
 import { collection, getDocs, setDoc, doc,deleteDoc } from 'firebase/firestore';
+// Firebase Auth imports
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  signOut 
+} from 'firebase/auth';
 const App = () => {
   const [repairs, setRepairs] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -12,6 +19,27 @@ const App = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [deletingId, setDeletingId] = useState(null); // null = no deletion in progress
   const [viewingRepair, setViewingRepair] = useState(null);
+  const [user, setUser] = useState(null); // null = not logged in
+const [email, setEmail] = useState('');
+const [password, setPassword] = useState('');
+const [authError, setAuthError] = useState('');
+const [loading, setLoading] = useState(false);
+
+// Initialize auth
+const auth = getAuth();
+
+// Listen for auth changes (persists login)
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setUser(user);
+    } else {
+      setUser(null);
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
 /*
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -86,7 +114,7 @@ useEffect(() => {
       ownerName: formData.get('ownerName'),
       contactNumber: formData.get('contactNumber'),
       password: formData.get('password') || 'N/A',
-      amount: parseFloat(formData.get('amount')) || 0,
+      amount: formData.get('amount') || 0,
       status: formData.get('status') || 'Received',
       deliveryTime: formData.get('deliveryTime'),
       createdAt: new Date().toLocaleString(),
@@ -177,8 +205,89 @@ const handleDeleteRepair = async (id) => {
   const getStatusOptions = () => [
     'Received', 'In Progress', 'Ready for Pickup', 'Completed', 'Cancelled'
   ];
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setAuthError('');
 
-  return (
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    // Success: user.state will update automatically via onAuthStateChanged
+  } catch (error) {
+    switch (error.code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+        setAuthError('Invalid email or password.');
+        break;
+      case 'auth/too-many-requests':
+        setAuthError('Too many attempts. Try again later.');
+        break;
+      default:
+        setAuthError('Login failed. Please try again.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+  return (!user ? (
+  <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+      <div className="text-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Imran Mobiles</h1>
+        <p className="text-gray-600 mt-2">Staff Login Only</p>
+      </div>
+
+      {authError && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">
+          {authError}
+        </div>
+      )}
+
+      <form onSubmit={handleLogin}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="employee@imranmobiles.com"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium py-3 px-6 rounded-lg shadow transition-colors duration-200"
+          >
+            {loading ? "Signing In..." : "Sign In"}
+          </button>
+        </div>
+      </form>
+
+      <button
+        onClick={() => signOut(auth)}
+        className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+      >
+        ← Back to Home
+      </button>
+    </div>
+  </div>
+) : (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white shadow-md">
@@ -282,7 +391,7 @@ const handleDeleteRepair = async (id) => {
                         <div className="text-sm text-gray-900">{repair.contactNumber}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-indigo-600">₹{repair.amount.toFixed(2)}</div>
+                        <div className="text-sm font-medium text-indigo-600">₹{repair.amount}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getStatusColor(repair.status)}`}>
@@ -354,6 +463,9 @@ const handleDeleteRepair = async (id) => {
           </div>
         </div>
       </div>
+      
+
+      
 
       {/* Add/Edit Repair Modal */}
       {showAddForm && (
@@ -399,6 +511,17 @@ const handleDeleteRepair = async (id) => {
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="color:Black , 5G, IMEI- 497867590261303"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Problem/Condition</label>
+                    <input
+                      type="text"
+                      name="issueDescription"
+                      defaultValue={editingRepair?.issueDescription || ''}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Touch glass change.."
                     />
                   </div>
 
@@ -474,16 +597,7 @@ const handleDeleteRepair = async (id) => {
                       placeholder="e.g., 2 days, June 15, 2023"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Problem/Condition</label>
-                    <input
-                      type="text"
-                      name="issueDescription"
-                      defaultValue={editingRepair?.issueDescription || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Touch glass change.."
-                    />
-                  </div>
+                  
                 </div>
 
                 <div className="flex justify-end space-x-3 mt-8">
@@ -643,7 +757,7 @@ const handleDeleteRepair = async (id) => {
 
           <div>
             <span className="font-medium text-gray-700">Amount:</span>
-            <p className="text-indigo-600 font-medium">₹{viewingRepair.amount.toFixed(2)}</p>
+            <p className="text-indigo-600 font-medium">₹{viewingRepair.amount}</p>
           </div>
 
           {/* Status Update */}
@@ -721,8 +835,9 @@ const handleDeleteRepair = async (id) => {
     </div>
   </div>
 )}
-    </div>
-  );
+</div>
+))
 };
+
 
 export default App;
