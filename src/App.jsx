@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
 import { db } from './firebase';
+import {nanoid} from 'nanoid';
+// import { randomUUID } from 'crypto';
 // import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
 import { collection, getDocs, setDoc, doc,deleteDoc } from 'firebase/firestore';
@@ -109,7 +111,8 @@ useEffect(() => {
     const formData = new FormData(e.target);
     
     const newRepair = {
-      id: editingRepair?editingRepair.id:Date.now().toString(),
+      // id: editingRepair?editingRepair.id:Date.now().toString(),
+      id: editingRepair?editingRepair.id:nanoid(),
       mobileName: formData.get('mobileName'),
       ownerName: formData.get('ownerName'),
       contactNumber: formData.get('contactNumber'),
@@ -117,7 +120,7 @@ useEffect(() => {
       amount: formData.get('amount') || 0,
       status: formData.get('status') || 'Received',
       deliveryTime: formData.get('deliveryTime'),
-      createdAt: new Date().toLocaleString(),
+      createdAt: editingRepair?editingRepair.createdAt:new Date().toLocaleString(),
       issueDescription: formData.get('issueDescription'),
       extraInfo: formData.get('extraInfo')
     };
