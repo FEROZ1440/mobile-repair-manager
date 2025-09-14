@@ -39,7 +39,7 @@ useEffect(() => {
   });
 
   return () => unsubscribe();
-}, []);
+});
 /*
   // Load data from localStorage on component mount
   useEffect(() => {
